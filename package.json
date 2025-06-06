@@ -72,10 +72,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "yarn lint:fix",
+      "eslint --fix",
       "prettier --write",
-      "yarn test",
-      "yarn build"
+      "tsc-files --noEmit",
+      "vitest run"
     ],
     "*.{json,md}": [
       "prettier --write"

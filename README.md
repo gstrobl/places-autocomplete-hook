@@ -264,4 +264,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT © [Seatsmatch GmbH]
+MIT © [Seatsmatch GmbH](https://seatsmatch.com)
