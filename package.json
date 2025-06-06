@@ -74,8 +74,9 @@
     "*.{ts,tsx}": [
       "eslint --fix",
       "prettier --write",
-      "tsc-files --noEmit",
-      "vitest run"
+      "tsc --noEmit",
+      "yarn test",
+      "yarn build"
     ],
     "*.{json,md}": [
       "prettier --write"
