@@ -1,0 +1,58 @@
+{
+  "name": "places-autocomplete-hook",
+  "version": "0.1.0",
+  "description": "A React hook for Google Places Autocomplete API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist",
+    "prepublishOnly": "yarn clean && yarn build",
+    "test": "vitest",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "react",
+    "hook",
+    "google",
+    "places",
+    "autocomplete",
+    "google-places-autocomplete",
+    "google-places-autocomplete-hook",
+    "google-places-autocomplete-hook-react",
+    "google-places-autocomplete-hook-react-ts",
+    "places api",
+    "places api hook",
+    "places api hook react",
+    "places api hook react ts",
+    "places api hook react tsx",
+    "places api hook react tsx ts",
+    "places api hook react tsx tsx"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.0.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.2"
+  }
+}
