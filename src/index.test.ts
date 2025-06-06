@@ -22,9 +22,7 @@ describe('usePlacesAutocomplete', () => {
   });
 
   it('should initialize with empty predictions', () => {
-    const { result } = renderHook(() =>
-      usePlacesAutocomplete({ apiKey: mockApiKey })
-    );
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
 
     expect(result.current.predictions).toEqual([]);
     expect(result.current.loading).toBe(false);
@@ -38,9 +36,7 @@ describe('usePlacesAutocomplete', () => {
     });
     global.fetch = mockFetch;
 
-    const { result } = renderHook(() =>
-      usePlacesAutocomplete({ apiKey: mockApiKey })
-    );
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
 
     await act(async () => {
       await result.current.search('test');
@@ -48,7 +44,7 @@ describe('usePlacesAutocomplete', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('https://places.googleapis.com/v1/places:autocomplete'),
-      expect.any(Object)
+      expect.any(Object),
     );
     expect(result.current.predictions).toEqual(mockPredictions);
   });
@@ -58,9 +54,7 @@ describe('usePlacesAutocomplete', () => {
     const mockFetch = vi.fn().mockRejectedValue(mockError);
     global.fetch = mockFetch;
 
-    const { result } = renderHook(() =>
-      usePlacesAutocomplete({ apiKey: mockApiKey })
-    );
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
 
     await act(async () => {
       await result.current.search('test');
@@ -71,9 +65,7 @@ describe('usePlacesAutocomplete', () => {
   });
 
   it('should clear predictions and error', async () => {
-    const { result } = renderHook(() =>
-      usePlacesAutocomplete({ apiKey: mockApiKey })
-    );
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
 
     await act(async () => {
       result.current.clear();
@@ -92,7 +84,7 @@ describe('usePlacesAutocomplete', () => {
     global.fetch = mockFetch;
 
     const { result } = renderHook(() =>
-      usePlacesAutocomplete({ apiKey: mockApiKey, debounceMs: 300 })
+      usePlacesAutocomplete({ apiKey: mockApiKey, debounceMs: 300 }),
     );
 
     await act(async () => {
@@ -108,4 +100,4 @@ describe('usePlacesAutocomplete', () => {
     expect(mockFetch).toHaveBeenCalled();
     vi.useRealTimers();
   });
-}); 
+});

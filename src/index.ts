@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { UsePlacesAutocompleteOptions, UsePlacesAutocompleteResult, PlacePrediction, PlaceDetails, AddressComponent } from './types';
+import {
+  UsePlacesAutocompleteOptions,
+  UsePlacesAutocompleteResult,
+  PlacePrediction,
+  PlaceDetails,
+  AddressComponent,
+} from './types';
 
 export function usePlacesAutocomplete({
   apiKey,
@@ -19,7 +25,10 @@ export function usePlacesAutocomplete({
     setError(null);
   }, []);
 
-  const extractAddressComponent = (components: AddressComponent[], type: string): string | undefined => {
+  const extractAddressComponent = (
+    components: AddressComponent[],
+    type: string,
+  ): string | undefined => {
     const component = components.find(comp => comp.types.includes(type));
     return component?.longText;
   };
@@ -36,7 +45,7 @@ export function usePlacesAutocomplete({
               'X-Goog-FieldMask': 'formattedAddress,addressComponents,location',
               ...(sessionToken && { 'X-Goog-Api-Key': apiKey }),
             },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -60,10 +69,12 @@ export function usePlacesAutocomplete({
           postalCode: extractAddressComponent(addressComponents, 'postal_code'),
         };
       } catch (err) {
-        throw err instanceof Error ? err : new Error('An error occurred while fetching place details');
+        throw err instanceof Error
+          ? err
+          : new Error('An error occurred while fetching place details');
       }
     },
-    [apiKey, language, sessionToken]
+    [apiKey, language, sessionToken],
   );
 
   const search = useCallback(
@@ -77,6 +88,7 @@ export function usePlacesAutocomplete({
         setLoading(true);
         setError(null);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const requestBody: any = {
           input: input,
           languageCode: language,
@@ -104,11 +116,12 @@ export function usePlacesAutocomplete({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-FieldMask': 'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types',
+              'X-Goog-FieldMask':
+                'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types',
               ...(sessionToken && { 'X-Goog-Api-Key': apiKey }),
             },
             body: JSON.stringify(requestBody),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -117,6 +130,7 @@ export function usePlacesAutocomplete({
         }
 
         const data = await response.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setPredictions(data.suggestions.map((suggestion: any) => suggestion.placePrediction) || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));
@@ -125,7 +139,7 @@ export function usePlacesAutocomplete({
         setLoading(false);
       }
     },
-    [apiKey, language, sessionToken, types, location, clear]
+    [apiKey, language, sessionToken, types, location, clear],
   );
 
   const debouncedSearch = useCallback(
@@ -134,14 +148,14 @@ export function usePlacesAutocomplete({
         clearTimeout(debounceTimer.current);
       }
 
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(resolve => {
         debounceTimer.current = setTimeout(async () => {
           await search(input);
           resolve();
         }, debounceMs);
       });
     },
-    [search, debounceMs]
+    [search, debounceMs],
   );
 
   useEffect(() => {
@@ -162,4 +176,9 @@ export function usePlacesAutocomplete({
   };
 }
 
-export type { PlacePrediction, UsePlacesAutocompleteOptions, UsePlacesAutocompleteResult, PlaceDetails }; 
+export type {
+  PlacePrediction,
+  UsePlacesAutocompleteOptions,
+  UsePlacesAutocompleteResult,
+  PlaceDetails,
+};

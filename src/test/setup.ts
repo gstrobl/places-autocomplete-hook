@@ -13,4 +13,4 @@ afterEach(() => {
 });
 
 // Mock fetch globally
-global.fetch = vi.fn(); 
+global.fetch = vi.fn();

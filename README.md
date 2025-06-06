@@ -45,18 +45,16 @@ function LocationSearch() {
     <div>
       <input
         type="text"
-        onChange={(e) => search(e.target.value)}
+        onChange={e => search(e.target.value)}
         placeholder="Search for a location..."
       />
-      
+
       {loading && <div>Loading...</div>}
       {error && <div>Error: {error.message}</div>}
-      
+
       <ul>
-        {predictions.map((prediction) => (
-          <li key={prediction.placeId}>
-            {prediction.description}
-          </li>
+        {predictions.map(prediction => (
+          <li key={prediction.placeId}>{prediction.description}</li>
         ))}
       </ul>
     </div>
@@ -74,8 +72,8 @@ const { predictions, search } = usePlacesAutocomplete({
   location: {
     lat: 37.7749,
     lng: -122.4194,
-    radius: 5000 // 5km radius
-  }
+    radius: 5000, // 5km radius
+  },
 });
 ```
 
@@ -84,7 +82,7 @@ const { predictions, search } = usePlacesAutocomplete({
 ```tsx
 const { predictions, search } = usePlacesAutocomplete({
   apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  types: ['address', 'establishment']
+  types: ['address', 'establishment'],
 });
 ```
 
@@ -93,7 +91,7 @@ const { predictions, search } = usePlacesAutocomplete({
 ```tsx
 const { predictions, search } = usePlacesAutocomplete({
   apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  debounceMs: 500 // 500ms debounce
+  debounceMs: 500, // 500ms debounce
 });
 ```
 
@@ -104,10 +102,10 @@ import { usePlacesAutocomplete } from 'places-autocomplete-hook';
 
 function LocationSearch() {
   const sessionToken = useRef(new google.maps.places.AutocompleteSessionToken());
-  
+
   const { predictions, search } = usePlacesAutocomplete({
     apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-    sessionToken: sessionToken.current
+    sessionToken: sessionToken.current,
   });
 }
 ```
@@ -119,7 +117,7 @@ import { usePlacesAutocomplete } from 'places-autocomplete-hook';
 
 function LocationSearch() {
   const { predictions, search, getPlaceDetails } = usePlacesAutocomplete({
-    apiKey: 'YOUR_GOOGLE_PLACES_API_KEY'
+    apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
   });
 
   const handleSelect = async (placeId: string) => {
@@ -132,7 +130,7 @@ function LocationSearch() {
         state: details.state,
         country: details.country,
         postalCode: details.postalCode,
-        location: details.location
+        location: details.location,
       });
     } catch (error) {
       console.error('Error fetching place details:', error);
@@ -143,13 +141,13 @@ function LocationSearch() {
     <div>
       <input
         type="text"
-        onChange={(e) => search(e.target.value)}
+        onChange={e => search(e.target.value)}
         placeholder="Search for a location..."
       />
-      
+
       <ul>
-        {predictions.map((prediction) => (
-          <li 
+        {predictions.map(prediction => (
+          <li
             key={prediction.placeId}
             onClick={() => handleSelect(prediction.placeId)}
             style={{ cursor: 'pointer' }}
@@ -197,14 +195,14 @@ interface AddressComponent {
 
 #### Options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `apiKey` | `string` | Yes | - | Your Google Places API key |
-| `debounceMs` | `number` | No | `300` | Debounce time in milliseconds |
-| `language` | `string` | No | `'en'` | Language code for results |
-| `types` | `string[]` | No | - | Array of place types to restrict results |
-| `sessionToken` | `string` | No | - | Session token for billing purposes |
-| `location` | `LocationBias` | No | - | Location bias configuration |
+| Option         | Type           | Required | Default | Description                              |
+| -------------- | -------------- | -------- | ------- | ---------------------------------------- |
+| `apiKey`       | `string`       | Yes      | -       | Your Google Places API key               |
+| `debounceMs`   | `number`       | No       | `300`   | Debounce time in milliseconds            |
+| `language`     | `string`       | No       | `'en'`  | Language code for results                |
+| `types`        | `string[]`     | No       | -       | Array of place types to restrict results |
+| `sessionToken` | `string`       | No       | -       | Session token for billing purposes       |
+| `location`     | `LocationBias` | No       | -       | Location bias configuration              |
 
 #### LocationBias Type
 
@@ -218,14 +216,14 @@ interface LocationBias {
 
 #### Returns
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `predictions` | `PlacePrediction[]` | Array of place predictions |
-| `loading` | `boolean` | Loading state indicator |
-| `error` | `Error \| null` | Error state |
-| `search` | `(input: string) => Promise<void>` | Function to trigger a search |
-| `clear` | `() => void` | Function to clear predictions and error state |
-| `getPlaceDetails` | `(placeId: string) => Promise<PlaceDetails>` | Function to get detailed place information |
+| Property          | Type                                         | Description                                   |
+| ----------------- | -------------------------------------------- | --------------------------------------------- |
+| `predictions`     | `PlacePrediction[]`                          | Array of place predictions                    |
+| `loading`         | `boolean`                                    | Loading state indicator                       |
+| `error`           | `Error \| null`                              | Error state                                   |
+| `search`          | `(input: string) => Promise<void>`           | Function to trigger a search                  |
+| `clear`           | `() => void`                                 | Function to clear predictions and error state |
+| `getPlaceDetails` | `(placeId: string) => Promise<PlaceDetails>` | Function to get detailed place information    |
 
 #### PlacePrediction Type
 
@@ -251,15 +249,13 @@ The hook provides error handling through the `error` state:
 
 ```tsx
 const { error, search } = usePlacesAutocomplete({
-  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY'
+  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
 });
 
 // Handle errors in your UI
-{error && (
-  <div className="error">
-    Error: {error.message}
-  </div>
-)}
+{
+  error && <div className="error">Error: {error.message}</div>;
+}
 ```
 
 ## Contributing
@@ -268,4 +264,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT © [Seatsmatch GmbH] 
+MIT © [Seatsmatch GmbH]

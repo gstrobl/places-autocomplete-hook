@@ -55,6 +55,7 @@ export interface UsePlacesAutocompleteOptions {
     lng: number;
     radius?: number;
   };
+  // eslint-disable-next-line no-unused-vars
   onPlaceSelect?: (details: PlaceDetails) => void;
 }
 
@@ -62,7 +63,9 @@ export interface UsePlacesAutocompleteResult {
   predictions: PlacePrediction[];
   loading: boolean;
   error: Error | null;
+  // eslint-disable-next-line no-unused-vars
   search: (input: string) => Promise<void>;
   clear: () => void;
+  // eslint-disable-next-line no-unused-vars
   getPlaceDetails: (placeId: string) => Promise<PlaceDetails>;
-} 
+}
