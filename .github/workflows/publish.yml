@@ -29,7 +29,7 @@ jobs:
         run: yarn lint
       
       - name: Run tests
-        run: yarn test
+        run: yarn test:coverage
       
       - name: Build
         run: yarn build
@@ -49,9 +49,6 @@ jobs:
       
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-
-      - name: Test Coverage
-        run: yarn test:coverage
       
       - name: Build
         run: yarn build
