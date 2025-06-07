@@ -30,7 +30,7 @@ yarn add places-autocomplete-hook
 ## Quick Start
 
 ```tsx
-import { usePlacesAutocomplete } from '@your-org/places-autocomplete-hook';
+import { usePlacesAutocomplete } from 'places-autocomplete-hook';
 
 function AddressInput() {
   const {
