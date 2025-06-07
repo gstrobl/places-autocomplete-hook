@@ -44,6 +44,9 @@ jobs:
             echo "Error: NPM_TOKEN is not set"
             exit 1
           fi
-          yarn npm publish --non-interactive
+          # Fix package.json repository URL format
+          npm pkg fix
+          # Publish using npm directly
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
