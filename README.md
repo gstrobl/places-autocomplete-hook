@@ -1,4 +1,4 @@
-# Google Places Autocomplete Hook
+# React Google Places Autocomplete Hook
 
 A lightweight React hook for Google Places Autocomplete API that provides a simple way to implement location search functionality in your React applications.
 
@@ -10,162 +10,147 @@ A lightweight React hook for Google Places Autocomplete API that provides a simp
 
 ## Features
 
-- 🔍 Simple and intuitive API
-- ⚡ Built-in debouncing
-- 🌍 Language support
-- 📍 Location biasing
-- 🔒 TypeScript support
-- 🎯 Place type filtering
-- 💰 Session token support for billing optimization
+- 🔍 Real-time address suggestions as you type
+- 🎯 Support for location biasing
+- 🌍 Multi-language support
+- ⚡ Debounced search to prevent excessive API calls
+- 🔒 Session token support for billing optimization
+- 📍 Detailed place information retrieval
+- 🎨 Fully customizable UI (bring your own components)
+- 🧪 Fully tested with Vitest
 
 ## Installation
 
 ```bash
-# Using npm
 npm install places-autocomplete-hook
-
-# Using yarn
+# or
 yarn add places-autocomplete-hook
-
-# Using pnpm
-pnpm add places-autocomplete-hook
 ```
 
 ## Quick Start
 
 ```tsx
-import { usePlacesAutocomplete } from 'places-autocomplete-hook';
+import { usePlacesAutocomplete } from '@your-org/places-autocomplete-hook';
 
-function LocationSearch() {
-  const { predictions, loading, error, search } = usePlacesAutocomplete({
+function AddressInput() {
+  const {
+    value,
+    suggestions,
+    setValue,
+    clearSuggestions,
+    loading,
+    error,
+    getPlaceDetails,
+    handlePlaceSelect,
+  } = usePlacesAutocomplete({
     apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
   });
 
   return (
     <div>
       <input
-        type="text"
-        onChange={e => search(e.target.value)}
-        placeholder="Search for a location..."
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="Enter an address"
       />
-
       {loading && <div>Loading...</div>}
       {error && <div>Error: {error.message}</div>}
-
-      <ul>
-        {predictions.map(prediction => (
-          <li key={prediction.placeId}>{prediction.description}</li>
-        ))}
-      </ul>
+      {suggestions.status === 'OK' && (
+        <ul>
+          {suggestions.data.map(prediction => (
+            <li key={prediction.placeId} onClick={() => handlePlaceSelect(prediction.placeId)}>
+              {prediction.structuredFormat.mainText.text},{' '}
+              {prediction.structuredFormat.secondaryText.text}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 ```
 
-## Advanced Usage
+## API Reference
 
-### With Location Biasing
-
-```tsx
-const { predictions, search } = usePlacesAutocomplete({
-  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  location: {
-    lat: 37.7749,
-    lng: -122.4194,
-    radius: 5000, // 5km radius
-  },
-});
-```
-
-### With Place Type Filtering
-
-```tsx
-const { predictions, search } = usePlacesAutocomplete({
-  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  types: ['address', 'establishment'],
-});
-```
-
-### With Custom Debounce
-
-```tsx
-const { predictions, search } = usePlacesAutocomplete({
-  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  debounceMs: 500, // 500ms debounce
-});
-```
-
-### With Session Token for Billing Optimization
-
-```tsx
-import { usePlacesAutocomplete } from 'places-autocomplete-hook';
-
-function LocationSearch() {
-  const sessionToken = useRef(new google.maps.places.AutocompleteSessionToken());
-
-  const { predictions, search } = usePlacesAutocomplete({
-    apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-    sessionToken: sessionToken.current,
-  });
-}
-```
-
-### With Place Details
-
-```tsx
-import { usePlacesAutocomplete } from 'places-autocomplete-hook';
-
-function LocationSearch() {
-  const { predictions, search, getPlaceDetails } = usePlacesAutocomplete({
-    apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
-  });
-
-  const handleSelect = async (placeId: string) => {
-    try {
-      const details = await getPlaceDetails(placeId);
-      console.log('Selected place details:', {
-        address: details.formattedAddress,
-        street: details.streetName,
-        city: details.city,
-        state: details.state,
-        country: details.country,
-        postalCode: details.postalCode,
-        location: details.location,
-      });
-    } catch (error) {
-      console.error('Error fetching place details:', error);
-    }
-  };
-
-  return (
-    <div>
-      <input
-        type="text"
-        onChange={e => search(e.target.value)}
-        placeholder="Search for a location..."
-      />
-
-      <ul>
-        {predictions.map(prediction => (
-          <li
-            key={prediction.placeId}
-            onClick={() => handleSelect(prediction.placeId)}
-            style={{ cursor: 'pointer' }}
-          >
-            {prediction.structuredFormatting.mainText}
-            <br />
-            <small>{prediction.structuredFormatting.secondaryText}</small>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
-
-#### PlaceDetails Type
+### Hook Options
 
 ```typescript
+interface UsePlacesAutocompleteOptions {
+  /** Your Google Places API key */
+  apiKey: string;
+  /** Debounce time in milliseconds (default: 300) */
+  debounceMs?: number;
+  /** Language code for results (default: 'en') */
+  language?: string;
+  /** Types of places to search for */
+  types?: string[];
+  /** Session token for billing optimization */
+  sessionToken?: string;
+  /** Location bias for more relevant results */
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number;
+  };
+  /** Callback that is called when a place is selected, providing the place ID */
+  setSelectedPlace?: (placeId: string) => void;
+}
+```
+
+### Hook Return Value
+
+```typescript
+interface UsePlacesAutocompleteResult {
+  /** Current input value */
+  value: string;
+  /** Suggestions state and data */
+  suggestions: {
+    status: 'OK' | 'ZERO_RESULTS' | 'ERROR' | 'LOADING';
+    data: PlacePrediction[];
+  };
+  /** Function to update the input value */
+  setValue: (value: string, shouldFetchData?: boolean) => void;
+  /** Function to clear suggestions */
+  clearSuggestions: () => void;
+  /** Function to manually trigger a search */
+  search: (input: string) => Promise<void>;
+  /** Loading state */
+  loading: boolean;
+  /** Error state */
+  error: Error | null;
+  /** Function to get detailed place information */
+  getPlaceDetails: (placeId: string) => Promise<PlaceDetails>;
+  /** Function to handle place selection */
+  handlePlaceSelect: (placeId: string) => Promise<void>;
+}
+```
+
+### Types
+
+```typescript
+interface PlacePrediction {
+  place: string;
+  placeId: string;
+  text: {
+    text: string;
+    matches: Array<{
+      endOffset: number;
+    }>;
+  };
+  structuredFormat: {
+    mainText: {
+      text: string;
+      matches: Array<{
+        endOffset: number;
+      }>;
+    };
+    secondaryText: {
+      text: string;
+    };
+  };
+  types: string[];
+}
+
 interface PlaceDetails {
   placeId: string;
   formattedAddress: string;
@@ -181,81 +166,53 @@ interface PlaceDetails {
   country?: string;
   postalCode?: string;
 }
-
-interface AddressComponent {
-  longText: string;
-  shortText: string;
-  types: string[];
-}
 ```
 
-## API Reference
+## Advanced Usage
 
-### usePlacesAutocomplete(options)
-
-#### Options
-
-| Option         | Type           | Required | Default | Description                              |
-| -------------- | -------------- | -------- | ------- | ---------------------------------------- |
-| `apiKey`       | `string`       | Yes      | -       | Your Google Places API key               |
-| `debounceMs`   | `number`       | No       | `300`   | Debounce time in milliseconds            |
-| `language`     | `string`       | No       | `'en'`  | Language code for results                |
-| `types`        | `string[]`     | No       | -       | Array of place types to restrict results |
-| `sessionToken` | `string`       | No       | -       | Session token for billing purposes       |
-| `location`     | `LocationBias` | No       | -       | Location bias configuration              |
-
-#### LocationBias Type
-
-```typescript
-interface LocationBias {
-  lat: number;
-  lng: number;
-  radius?: number; // in meters
-}
-```
-
-#### Returns
-
-| Property          | Type                                         | Description                                   |
-| ----------------- | -------------------------------------------- | --------------------------------------------- |
-| `predictions`     | `PlacePrediction[]`                          | Array of place predictions                    |
-| `loading`         | `boolean`                                    | Loading state indicator                       |
-| `error`           | `Error \| null`                              | Error state                                   |
-| `search`          | `(input: string) => Promise<void>`           | Function to trigger a search                  |
-| `clear`           | `() => void`                                 | Function to clear predictions and error state |
-| `getPlaceDetails` | `(placeId: string) => Promise<PlaceDetails>` | Function to get detailed place information    |
-
-#### PlacePrediction Type
-
-```typescript
-interface PlacePrediction {
-  placeId: string;
-  description: string;
-  structuredFormatting: {
-    mainText: string;
-    secondaryText: string;
-  };
-  types: string[];
-  matchedSubstrings: Array<{
-    length: number;
-    offset: number;
-  }>;
-}
-```
-
-## Error Handling
-
-The hook provides error handling through the `error` state:
+### Location Biasing
 
 ```tsx
-const { error, search } = usePlacesAutocomplete({
-  apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
+const { value, suggestions, setValue } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
+  location: {
+    lat: 37.7749,
+    lng: -122.4194,
+    radius: 50000, // 50km radius
+  },
+});
+```
+
+### Custom Types
+
+```tsx
+const { value, suggestions, setValue } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
+  types: ['address', 'establishment'],
+});
+```
+
+### Session Token for Billing Optimization
+
+```tsx
+const { value, suggestions, setValue } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
+  sessionToken: 'YOUR_SESSION_TOKEN',
+});
+```
+
+### Getting Place Details
+
+```tsx
+const { getPlaceDetails, handlePlaceSelect } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
 });
 
-// Handle errors in your UI
-{
-  error && <div className="error">Error: {error.message}</div>;
-}
+const handleSelect = async (placeId: string) => {
+  await handlePlaceSelect(placeId);
+  const details = await getPlaceDetails(placeId);
+  console.log('Selected place details:', details);
+};
 ```
 
 ## Contributing
@@ -264,4 +221,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT © [Seatsmatch GmbH](https://seatsmatch.com)
+MIT [Seatsmatch GmbH](https://seatsmatch.com)

@@ -14,7 +14,9 @@ export function usePlacesAutocomplete({
   types,
   sessionToken,
   location,
+  setSelectedPlace,
 }: UsePlacesAutocompleteOptions): UsePlacesAutocompleteResult {
+  const [value, setValue] = useState('');
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -23,6 +25,7 @@ export function usePlacesAutocomplete({
   const clear = useCallback(() => {
     setPredictions([]);
     setError(null);
+    setValue('');
   }, []);
 
   const extractAddressComponent = (
@@ -77,6 +80,13 @@ export function usePlacesAutocomplete({
     [apiKey, language, sessionToken],
   );
 
+  const handlePlaceSelect = useCallback(
+    async (placeId: string) => {
+      setSelectedPlace?.(placeId);
+    },
+    [setSelectedPlace],
+  );
+
   const search = useCallback(
     async (input: string) => {
       if (!input.trim()) {
@@ -88,7 +98,6 @@ export function usePlacesAutocomplete({
         setLoading(true);
         setError(null);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const requestBody: any = {
           input: input,
           languageCode: language,
@@ -130,7 +139,6 @@ export function usePlacesAutocomplete({
         }
 
         const data = await response.json();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setPredictions(data.suggestions.map((suggestion: any) => suggestion.placePrediction) || []);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));
@@ -167,12 +175,29 @@ export function usePlacesAutocomplete({
   }, []);
 
   return {
-    predictions,
+    value,
+    suggestions: {
+      status: error
+        ? 'ERROR'
+        : loading
+          ? 'LOADING'
+          : predictions.length > 0
+            ? 'OK'
+            : 'ZERO_RESULTS',
+      data: predictions,
+    },
+    setValue: (newValue: string, shouldFetchData = true) => {
+      setValue(newValue);
+      if (shouldFetchData) {
+        debouncedSearch(newValue);
+      }
+    },
+    clearSuggestions: clear,
+    search: debouncedSearch,
     loading,
     error,
-    search: debouncedSearch,
-    clear,
     getPlaceDetails,
+    handlePlaceSelect,
   };
 }
 

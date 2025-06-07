@@ -1,11 +1,18 @@
 {
   "name": "places-autocomplete-hook",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A React hook for Google Places Autocomplete API",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -24,7 +31,9 @@
     "prepare": "husky",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "lint-staged": "lint-staged"
   },
   "keywords": [
     "react",
@@ -72,11 +81,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write",
-      "tsc --noEmit",
-      "yarn test",
-      "yarn build"
+      "yarn lint:fix",
+      "yarn format"
     ],
     "*.{json,md}": [
       "prettier --write"

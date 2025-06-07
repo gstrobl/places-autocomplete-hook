@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export interface PlacePrediction {
   place: string;
   placeId: string;
@@ -55,17 +56,21 @@ export interface UsePlacesAutocompleteOptions {
     lng: number;
     radius?: number;
   };
-  // eslint-disable-next-line no-unused-vars
-  onPlaceSelect?: (details: PlaceDetails) => void;
+  /** Callback that is called when a place is selected, providing the place ID */
+  setSelectedPlace?: (placeId: string) => void;
 }
 
 export interface UsePlacesAutocompleteResult {
-  predictions: PlacePrediction[];
+  value: string;
+  suggestions: {
+    status: 'OK' | 'ZERO_RESULTS' | 'ERROR' | 'LOADING';
+    data: PlacePrediction[];
+  };
+  setValue: (value: string, shouldFetchData?: boolean) => void;
+  clearSuggestions: () => void;
+  search: (input: string) => Promise<void>;
   loading: boolean;
   error: Error | null;
-  // eslint-disable-next-line no-unused-vars
-  search: (input: string) => Promise<void>;
-  clear: () => void;
-  // eslint-disable-next-line no-unused-vars
   getPlaceDetails: (placeId: string) => Promise<PlaceDetails>;
+  handlePlaceSelect: (placeId: string) => Promise<void>;
 }
