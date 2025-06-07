@@ -88,5 +88,8 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "npm": "^11.4.1"
   }
 }

@@ -49,11 +49,14 @@ jobs:
       
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Test Coverage
+        run: yarn test:coverage
       
       - name: Build
         run: yarn build
       
       - name: Publish to NPM
-        run: yarn publish --non-interactive
+        run: yarn npm publish --non-interactive
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
