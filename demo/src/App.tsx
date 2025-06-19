@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, MapPin, Code, Key, TestTube, Copy, Check, Globe, Search } from 'lucide-react';
+import {
+  Settings,
+  MapPin,
+  Code,
+  Key,
+  TestTube,
+  Copy,
+  Check,
+  Map,
+  Search,
+  MessageSquareWarning,
+} from 'lucide-react';
 import { PlaceDetails, usePlacesAutocomplete } from 'places-autocomplete-hook';
+import seatsmatchLogo from './assets/seatsmatch-logo.svg';
+import githubIcon from './assets/github-mark.svg';
 
 interface ConfigCardProps {
   apiKey: string;
@@ -13,6 +26,12 @@ const ConfigCard: React.FC<ConfigCardProps> = ({ apiKey, onApiKeyChange }) => {
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  useEffect(() => {
+    if (apiKey) {
+      setTempKey(apiKey);
+    }
+  });
+
   const handleSave = () => {
     onApiKeyChange(tempKey);
     localStorage.setItem('places-autocomplete-api-key', tempKey);
@@ -20,15 +39,21 @@ const ConfigCard: React.FC<ConfigCardProps> = ({ apiKey, onApiKeyChange }) => {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleDelete = () => {
+    onApiKeyChange('');
+    setTempKey('');
+    localStorage.setItem('places-autocomplete-api-key', '');
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-blue-50 rounded-xl">
-          <Settings className="h-6 w-6 text-blue-600" />
+        <div className="p-3 bg-purple-50 rounded-xl">
+          <Settings className="h-6 w-6 text-purple-600" />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Configuration</h2>
-          <p className="text-gray-600">Setup your Google Places API key</p>
+          <p className="text-gray-600 text-sm">Setup your Google Places API key</p>
         </div>
       </div>
 
@@ -53,6 +78,9 @@ const ConfigCard: React.FC<ConfigCardProps> = ({ apiKey, onApiKeyChange }) => {
               {showKey ? '🙈' : '👁️'}
             </button>
           </div>
+          <p className="text-gray-600 text-xs mt-2">
+            Key is only stored in your Browser LocalStorage
+          </p>
         </div>
 
         <button
@@ -69,6 +97,14 @@ const ConfigCard: React.FC<ConfigCardProps> = ({ apiKey, onApiKeyChange }) => {
             'Save Configuration'
           )}
         </button>
+        {tempKey && (
+          <button
+            onClick={() => handleDelete()}
+            className="w-full bg-red-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            Remove Key from LocalStorage
+          </button>
+        )}
 
         {apiKey && (
           <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
@@ -105,20 +141,20 @@ const DemoSection: React.FC<DemoSectionProps> = ({ apiKey }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-green-50 rounded-xl">
-          <TestTube className="h-6 w-6 text-green-600" />
+        <div className="p-3 bg-purple-50 rounded-xl">
+          <TestTube className="h-6 w-6 text-purple-600" />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Live Demo</h2>
-          <p className="text-gray-600">Test the places autocomplete functionality</p>
+          <p className="text-gray-600 text-sm">Test the places autocomplete functionality</p>
         </div>
       </div>
 
       {!apiKey ? (
         <div className="text-center py-12 text-gray-500">
-          <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <MessageSquareWarning className="h-10 w-10 mx-auto mb-4 text-gray-300" />
           <p>Please configure your API key to test the autocomplete</p>
         </div>
       ) : (
@@ -223,26 +259,44 @@ const CodeExample: React.FC = () => {
 
   const codeExample = `import { usePlacesAutocomplete } from 'places-autocomplete-hook';
 
-function MyComponent() {
-  const { suggestions, loading, getSuggestions } = usePlacesAutocomplete({
-    apiKey: 'your-google-places-api-key',
-    debounce: 300
+function AddressInput() {
+  const {
+    value,
+    suggestions,
+    setValue,
+    loading,
+    error,
+    getPlaceDetails,
+    handlePlaceSelect,
+  } = usePlacesAutocomplete({
+    apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
   });
 
-  const handleInputChange = (value) => {
-    getSuggestions(value);
+  const handleSelect = async (placeId: string) => {
+    await handlePlaceSelect(placeId);
+    const details = await getPlaceDetails(placeId);
+    console.log('Selected place details:', details);
   };
-
+ 
   return (
     <div>
-      <input 
-        onChange={(e) => handleInputChange(e.target.value)}
-        placeholder="Search places..."
+      <input
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="Enter an address"
       />
-      {loading && <p>Loading...</p>}
-      {suggestions.map((place, index) => (
-        <div key={index}>{place}</div>
-      ))}
+      {loading && <div>Loading...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {suggestions.status === 'OK' && (
+        <ul>
+          {suggestions.data.map(prediction => (
+            <li key={prediction.placeId} onClick={() => handleSelect(prediction.placeId)}>
+              {prediction.structuredFormat?.mainText?.text},{' '}
+              {prediction.structuredFormat?.secondaryText?.text}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }`;
@@ -254,7 +308,7 @@ function MyComponent() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-purple-50 rounded-xl">
@@ -262,7 +316,7 @@ function MyComponent() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Usage Example</h2>
-            <p className="text-gray-600">How to use the places-autocomplete-hook</p>
+            <p className="text-gray-600 text-sm">How to use the places-autocomplete-hook</p>
           </div>
         </div>
         <button
@@ -291,22 +345,35 @@ function App() {
     if (savedKey) {
       setApiKey(savedKey);
     }
-  }, []);
+  }, [apiKey]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl">
-              <Globe className="h-8 w-8 text-white" />
+          <div className="flex justify-between w-full itmes-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl">
+                <Map className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
+                  Google Places Autocomplete Hook
+                </h1>
+                <p className="text-gray-600 mt-1 text-sm">
+                  React hook for Google Places API Autocomplete
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                Places Autocomplete Hook
-              </h1>
-              <p className="text-gray-600 mt-1">React hook for Google Places Autocomplete API</p>
+            <div className="border border-gray-300 px-4 py-2 rounded-lg flex align-center h-full">
+              <a
+                href="https://github.com/gstrobl/places-autocomplete-hook"
+                className="flex gap-2 align-center justify-center items-center"
+              >
+                Github Repository
+                <img src={githubIcon} alt="Github Icon" className="size-5" />
+              </a>
             </div>
           </div>
         </div>
@@ -324,7 +391,7 @@ function App() {
         </div>
 
         {/* Features */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
@@ -370,15 +437,23 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Globe className="h-6 w-6" />
-            <span className="text-xl font-semibold">Places Autocomplete Hook</span>
+      <footer className="bg-gradient-to-br from-purple-800 to-blue-800 text-white py-12 mt-20 shadow-">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="text-center">
+              <p className="text-gray-200 mb-4">This Page is sponsored by</p>
+              <a
+                href="https://seatsmatch.com"
+                target="_blank"
+                className="inline-block hover:opacity-90 transition-opacity"
+              >
+                <img src={seatsmatchLogo} alt="Seatsmatch Logo" className="h-12" />
+              </a>
+            </div>
           </div>
-          <p className="text-gray-400">
-            Made with ❤️ for React developers who need Google Places integration
-          </p>
+        </div>
+        <div className="max-w-7xl mx-auto mt-10 px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray-200">Made with ❤️ for React developers in Vienna</p>
         </div>
       </footer>
     </div>
