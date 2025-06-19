@@ -8,6 +8,8 @@ A lightweight React hook for Google Places Autocomplete API that provides a simp
 
 > This package is a wrapper around the [Google Places Autocomplete API](https://developers.google.com/maps/documentation/places/web-service/place-autocomplete). Make sure you have a valid Google Places API key with the Places API enabled in your Google Cloud Console.
 
+[![Try Demo](https://img.shields.io/badge/Try%20Demo-Live%20Preview-blue?style=for-the-badge&logo=react)](https://autocomplete.gstrobl.at)
+
 ## Features
 
 - 🔍 Real-time address suggestions as you type
@@ -59,8 +61,8 @@ function AddressInput() {
         <ul>
           {suggestions.data.map(prediction => (
             <li key={prediction.placeId} onClick={() => handlePlaceSelect(prediction.placeId)}>
-              {prediction.structuredFormat.mainText.text},{' '}
-              {prediction.structuredFormat.secondaryText.text}
+              {prediction.structuredFormat?.mainText?.text?.text},{' '}
+              {prediction.structuredFormat?.secondaryText?.text}
             </li>
           ))}
         </ul>
