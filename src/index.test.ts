@@ -154,7 +154,70 @@ describe('usePlacesAutocomplete', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('https://places.googleapis.com/v1/places/1'),
-      expect.any(Object),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Goog-FieldMask': 'formattedAddress,addressComponents,location',
+        }),
+      }),
+    );
+  });
+
+  it('should get place details with custom fields', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: '123 Test St, Test City, Test Country',
+          displayName: { text: 'Test Place' },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1', [
+        'formattedAddress',
+        'displayName',
+      ]);
+      expect(details.formattedAddress).toBe('123 Test St, Test City, Test Country');
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('https://places.googleapis.com/v1/places/1'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Goog-FieldMask': 'formattedAddress,displayName',
+        }),
+      }),
+    );
+  });
+
+  it('should use default fields when empty array is provided', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: '123 Test St, Test City, Test Country',
+          addressComponents: [],
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      await result.current.getPlaceDetails('1', []);
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('https://places.googleapis.com/v1/places/1'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Goog-FieldMask': 'formattedAddress,addressComponents,location',
+        }),
+      }),
     );
   });
 
