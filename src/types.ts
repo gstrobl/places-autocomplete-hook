@@ -50,6 +50,7 @@ export interface UsePlacesAutocompleteOptions {
   debounceMs?: number;
   language?: string;
   types?: string[];
+  includedPrimaryTypes?: string[];
   sessionToken?: string;
   location?: {
     lat: number;

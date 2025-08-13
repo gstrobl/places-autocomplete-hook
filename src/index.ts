@@ -12,6 +12,7 @@ export function usePlacesAutocomplete({
   debounceMs = 300,
   language = 'en',
   types,
+  includedPrimaryTypes,
   sessionToken,
   location,
   setSelectedPlace,
@@ -107,6 +108,10 @@ export function usePlacesAutocomplete({
           requestBody.types = types;
         }
 
+        if (includedPrimaryTypes) {
+          requestBody.includedPrimaryTypes = includedPrimaryTypes;
+        }
+
         if (location) {
           requestBody.locationBias = {
             circle: {
@@ -147,7 +152,7 @@ export function usePlacesAutocomplete({
         setLoading(false);
       }
     },
-    [apiKey, language, sessionToken, types, location, clear],
+    [apiKey, language, sessionToken, types, includedPrimaryTypes, location, clear],
   );
 
   const debouncedSearch = useCallback(
