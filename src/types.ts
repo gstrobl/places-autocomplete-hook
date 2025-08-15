@@ -72,6 +72,6 @@ export interface UsePlacesAutocompleteResult {
   search: (input: string) => Promise<void>;
   loading: boolean;
   error: Error | null;
-  getPlaceDetails: (placeId: string) => Promise<PlaceDetails>;
+  getPlaceDetails: (placeId: string, fields?: string[]) => Promise<PlaceDetails>;
   handlePlaceSelect: (placeId: string) => Promise<void>;
 }

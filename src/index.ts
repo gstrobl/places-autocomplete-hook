@@ -38,15 +38,18 @@ export function usePlacesAutocomplete({
   };
 
   const getPlaceDetails = useCallback(
-    async (placeId: string): Promise<PlaceDetails> => {
+    async (placeId: string, fields?: string[]): Promise<PlaceDetails> => {
       try {
+        const defaultFields = ['formattedAddress', 'addressComponents', 'location'];
+        const fieldMask = fields && fields.length > 0 ? fields.join(',') : defaultFields.join(',');
+
         const response = await fetch(
           `https://places.googleapis.com/v1/places/${placeId}?key=${apiKey}&languageCode=${language}`,
           {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-FieldMask': 'formattedAddress,addressComponents,location',
+              'X-Goog-FieldMask': fieldMask,
               ...(sessionToken && { 'X-Goog-Api-Key': apiKey }),
             },
           },
