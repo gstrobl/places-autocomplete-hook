@@ -1,6 +1,6 @@
 {
   "name": "places-autocomplete-hook",
-  "version": "0.1.6",
+  "version": "1.0.0",
   "description": "A React hook for Google Places Autocomplete API",
   "type": "module",
   "main": "./dist/index.js",
