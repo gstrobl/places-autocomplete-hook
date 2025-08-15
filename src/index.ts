@@ -11,8 +11,8 @@ export function usePlacesAutocomplete({
   apiKey,
   debounceMs = 300,
   language = 'en',
-  types,
   includedPrimaryTypes,
+  includedRegionCodes,
   sessionToken,
   location,
   setSelectedPlace,
@@ -107,12 +107,13 @@ export function usePlacesAutocomplete({
           languageCode: language,
         };
 
-        if (types) {
-          requestBody.types = types;
-        }
-
         if (includedPrimaryTypes) {
           requestBody.includedPrimaryTypes = includedPrimaryTypes;
+          requestBody.includeQueryPredictions = true;
+        }
+
+        if (includedRegionCodes) {
+          requestBody.includedRegionCodes = includedRegionCodes;
         }
 
         if (location) {
@@ -125,6 +126,10 @@ export function usePlacesAutocomplete({
               radius: location.radius,
             },
           };
+        }
+
+        if (includedPrimaryTypes || includedRegionCodes || location) {
+          requestBody.includeQueryPredictions = true;
         }
 
         const response = await fetch(
@@ -155,7 +160,7 @@ export function usePlacesAutocomplete({
         setLoading(false);
       }
     },
-    [apiKey, language, sessionToken, types, includedPrimaryTypes, location, clear],
+    [apiKey, language, sessionToken, includedPrimaryTypes, includedRegionCodes, location, clear],
   );
 
   const debouncedSearch = useCallback(

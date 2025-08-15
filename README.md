@@ -17,7 +17,7 @@ A lightweight React hook for Google Places Autocomplete API that provides a simp
 - 🌍 Multi-language support
 - ⚡ Debounced search to prevent excessive API calls
 - 🔒 Session token support for billing optimization
-- 📍 Detailed place information retrieval
+- 📍 Detailed place information retrieval with formattedAddress
 - 🎨 Fully customizable UI (bring your own components)
 - 🧪 Fully tested with Vitest
 
@@ -48,6 +48,12 @@ function AddressInput() {
     apiKey: 'YOUR_GOOGLE_PLACES_API_KEY',
   });
 
+  const handleSelect = async (placeId: string) => {
+    await handlePlaceSelect(placeId);
+    const details = await getPlaceDetails(placeId);
+    console.log('Selected place:', details.formattedAddress);
+  };
+
   return (
     <div>
       <input
@@ -60,8 +66,8 @@ function AddressInput() {
       {suggestions.status === 'OK' && (
         <ul>
           {suggestions.data.map(prediction => (
-            <li key={prediction.placeId} onClick={() => handlePlaceSelect(prediction.placeId)}>
-              {prediction.structuredFormat?.mainText?.text?.text},{' '}
+            <li key={prediction.placeId} onClick={() => handleSelect(prediction.placeId)}>
+              {prediction.structuredFormat?.mainText?.text},{' '}
               {prediction.structuredFormat?.secondaryText?.text}
             </li>
           ))}
@@ -84,10 +90,10 @@ interface UsePlacesAutocompleteOptions {
   debounceMs?: number;
   /** Language code for results (default: 'en') */
   language?: string;
-  /** Types of places to search for */
-  types?: string[];
-  /** Primary place types to include (Google Places v1: includedPrimaryTypes) */
+  /** Primary place types to include (Google Places API v1) */
   includedPrimaryTypes?: string[];
+  /** Region codes to restrict results to (ISO 3166-1 alpha-2 country codes) */
+  includedRegionCodes?: string[];
   /** Session token for billing optimization */
   sessionToken?: string;
   /** Location bias for more relevant results */
@@ -123,7 +129,7 @@ interface UsePlacesAutocompleteResult {
   /** Error state */
   error: Error | null;
   /** Function to get detailed place information */
-  getPlaceDetails: (placeId: string) => Promise<PlaceDetails>;
+  getPlaceDetails: (placeId: string, fields?: string[]) => Promise<PlaceDetails>;
   /** Function to handle place selection */
   handlePlaceSelect: (placeId: string) => Promise<void>;
 }
@@ -187,15 +193,6 @@ const { value, suggestions, setValue } = usePlacesAutocomplete({
 });
 ```
 
-### Custom Types
-
-```tsx
-const { value, suggestions, setValue } = usePlacesAutocomplete({
-  apiKey: 'YOUR_API_KEY',
-  types: ['address', 'establishment'],
-});
-```
-
 ### Included Primary Types
 
 ```tsx
@@ -206,6 +203,91 @@ const { value, suggestions, setValue } = usePlacesAutocomplete({
 });
 ```
 
+#### Available Primary Types
+
+The `includedPrimaryTypes` parameter (Places API v1) accepts an array of primary place types:
+
+- **`'locality'`** - Cites, Countries
+- **`'administrative_area_level_3'`** - Third-level administrative areas
+- **`'administrative_area_level_4'`** - Fourth-level administrative areas
+- **`'administrative_area_level_5'`** - Fifth-level administrative areas
+- **`'administrative_area_level_6'`** - Sixth-level administrative areas
+- **`'administrative_area_level_7'`** - Seventh-level administrative areas
+- **`'archipelago'`** - Groups of islands
+- **`'colloquial_area'`** - Colloquial or informal areas
+- **`'continent'`** - Continental regions
+- **`'establishment'`** - Businesses and establishments
+- **`'finance'`** - Financial institutions
+- **`'food'`** - Food-related establishments
+- **`'general_contractor'`** - General contracting services
+- **`'geocode'`** - Geocoding results
+- **`'health'`** - Health-related establishments
+- **`'intersection'`** - Street intersections
+- **`'landmark'`** - Notable landmarks
+- **`'natural_feature'`** - Natural geographical features
+- **`'neighborhood'`** - Neighborhoods and districts
+- **`'place_of_worship'`** - Religious buildings
+- **`'plus_code'`** - Plus codes for locations
+- **`'point_of_interest'`** - Points of interest
+- **`'political'`** - Political boundaries
+- **`'postal_code_prefix'`** - Postal code prefixes
+- **`'postal_code_suffix'`** - Postal code suffixes
+- **`'postal_town'`** - Postal towns
+- **`'premise'`** - Named locations
+- **`'route'`** - Streets, roads, etc.
+- **`'street_address'`** - Specific street addresses
+- **`'sublocality'`** - Districts, neighborhoods, etc.
+- **`'sublocality_level_1'`** - First-level sublocalities
+- **`'sublocality_level_2'`** - Second-level sublocalities
+- **`'sublocality_level_3'`** - Third-level sublocalities
+- **`'sublocality_level_4'`** - Fourth-level sublocalities
+- **`'sublocality_level_5'`** - Fifth-level sublocalities
+- **`'subpremise'`** - Unit numbers, apartment numbers, etc.
+- **`'town_square'`** - Town squares and plazas
+
+### Region Code Restrictions
+
+```tsx
+const { value, suggestions, setValue } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
+  // Restrict results to specific countries/regions
+  includedRegionCodes: ['US', 'CA'], // North America only
+});
+```
+
+#### Available Region Codes
+
+The `includedRegionCodes` parameter accepts an array of ISO 3166-1 alpha-2 country codes:
+
+- **`'US'`** - United States
+- **`'CA'`** - Canada
+- **`'GB'`** - United Kingdom
+- **`'DE'`** - Germany
+- **`'FR'`** - France
+- **`'AU'`** - Australia
+- **`'JP'`** - Japan
+- **`'IN'`** - India
+- **`'BR'`** - Brazil
+- **`'MX'`** - Mexico
+- **`'ES'`** - Spain
+- **`'IT'`** - Italy
+- **`'NL'`** - Netherlands
+- **`'SE'`** - Sweden
+- **`'NO'`** - Norway
+- **`'DK'`** - Denmark
+- **`'FI'`** - Finland
+- **`'CH'`** - Switzerland
+- **`'AT'`** - Austria
+- **`'BE'`** - Belgium
+
+#### Common Use Cases
+
+- **Single country**: `['US']` - Restrict to United States only
+- **Multiple countries**: `['US', 'CA']` - North America
+- **European Union**: `['DE', 'FR', 'IT', 'ES', 'NL']` - Major EU countries
+- **German-speaking regions**: `['DE', 'AT', 'CH']` - Germany, Austria, Switzerland
+- **Nordic countries**: `['SE', 'NO', 'DK', 'FI']` - Scandinavia and Finland
+
 ### Session Token for Billing Optimization
 
 ```tsx
@@ -215,7 +297,7 @@ const { value, suggestions, setValue } = usePlacesAutocomplete({
 });
 ```
 
-### Getting Place Details
+### Getting Place Details with formattedAddress
 
 ```tsx
 const { getPlaceDetails, handlePlaceSelect } = usePlacesAutocomplete({
@@ -225,8 +307,68 @@ const { getPlaceDetails, handlePlaceSelect } = usePlacesAutocomplete({
 const handleSelect = async (placeId: string) => {
   await handlePlaceSelect(placeId);
   const details = await getPlaceDetails(placeId);
-  console.log('Selected place details:', details);
+
+  console.log('Full address:', details.formattedAddress);
+  console.log('City:', details.city);
+  console.log('State:', details.state);
+  console.log('Country:', details.country);
+  console.log('Coordinates:', details.location);
 };
+```
+
+### Custom Fields for Place Details
+
+You can specify which fields to retrieve when getting place details:
+
+```tsx
+const details = await getPlaceDetails(placeId, [
+  'formattedAddress',
+  'addressComponents',
+  'location',
+  'displayName',
+  'photos',
+  'rating',
+  'userRatingCount',
+  'priceLevel',
+  'types',
+  'websiteUri',
+  'phoneNumbers',
+  'businessStatus',
+  'openingHours',
+  'delivery',
+  'dineIn',
+  'takeout',
+  'reservable',
+  'servesBeer',
+  'outdoorSeating',
+  'liveMusic',
+  'menuForChildren',
+  'servesCocktails',
+  'servesDessert',
+  'servesCoffee',
+  'goodForChildren',
+  'allowsDogs',
+  'restroom',
+  'parking',
+  'paymentOptions',
+  'accessibilityOptions',
+  'atmosphere',
+  'crowd',
+  'childrenFriendly',
+  'touristFriendly',
+  'upscale',
+  'casual',
+  'trendy',
+  'romantic',
+  'intimate',
+  'classy',
+  'hipster',
+  'divey',
+  'touristy',
+  'local',
+  'familyFriendly',
+  'groups',
+]);
 ```
 
 ## Contributing

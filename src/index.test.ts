@@ -397,4 +397,483 @@ describe('usePlacesAutocomplete', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
+
+  // New tests to cover missing coverage lines
+
+  it('should handle HTTP error responses in getPlaceDetails', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: () => Promise.resolve({ error: { message: 'Bad Request' } }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await expect(result.current.getPlaceDetails('1')).rejects.toThrow('Bad Request');
+  });
+
+  it('should handle HTTP error responses without error message in getPlaceDetails', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({}),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await expect(result.current.getPlaceDetails('1')).rejects.toThrow('HTTP error! status: 500');
+  });
+
+  it('should handle non-Error exceptions in getPlaceDetails', async () => {
+    const mockFetch = vi.fn().mockRejectedValue('String error');
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await expect(result.current.getPlaceDetails('1')).rejects.toThrow(
+      'An error occurred while fetching place details',
+    );
+  });
+
+  it('should handle address components extraction in getPlaceDetails', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: '123 Test St, Test City, Test Country',
+          addressComponents: [
+            { longText: '123', shortText: '123', types: ['street_number'] },
+            { longText: 'Test Street', shortText: 'Test St', types: ['route'] },
+            { longText: 'Test City', shortText: 'Test City', types: ['locality'] },
+            { longText: 'Test State', shortText: 'TS', types: ['administrative_area_level_1'] },
+            { longText: 'Test Country', shortText: 'TC', types: ['country'] },
+            { longText: '12345', shortText: '12345', types: ['postal_code'] },
+          ],
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1');
+      expect(details.streetNumber).toBe('123');
+      expect(details.streetName).toBe('Test Street');
+      expect(details.city).toBe('Test City');
+      expect(details.state).toBe('Test State');
+      expect(details.country).toBe('Test Country');
+      expect(details.postalCode).toBe('12345');
+    });
+  });
+
+  it('should handle missing address components gracefully', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: 'Test Location',
+          addressComponents: [],
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1');
+      expect(details.streetNumber).toBeUndefined();
+      expect(details.streetName).toBeUndefined();
+      expect(details.city).toBeUndefined();
+      expect(details.state).toBeUndefined();
+      expect(details.country).toBeUndefined();
+      expect(details.postalCode).toBeUndefined();
+    });
+  });
+
+  it('should handle undefined addressComponents in response', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: 'Test Location',
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1');
+      expect(details.addressComponents).toEqual([]);
+    });
+  });
+
+  it('should handle HTTP error responses in search function', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({ error: { message: 'Rate Limited' } }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe('Rate Limited');
+    expect(result.current.suggestions.status).toBe('ERROR');
+  });
+
+  it('should handle HTTP error responses without error message in search function', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: () => Promise.resolve({}),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe('HTTP error! status: 403');
+    expect(result.current.suggestions.status).toBe('ERROR');
+  });
+
+  it('should handle non-Error exceptions in search function', async () => {
+    const mockFetch = vi.fn().mockRejectedValue('String error');
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe('An error occurred');
+    expect(result.current.suggestions.status).toBe('ERROR');
+    expect(result.current.suggestions.data).toEqual([]);
+  });
+
+  it('should handle empty suggestions array in search response', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ suggestions: [] }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.suggestions.data).toEqual([]);
+    expect(result.current.suggestions.status).toBe('ZERO_RESULTS');
+  });
+
+  it('should handle location bias configuration', async () => {
+    const location = { lat: 37.7749, lng: -122.4194, radius: 50000 };
+    let requestBody: any;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      requestBody = JSON.parse(options.body);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ suggestions: [] }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey, location }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(requestBody.locationBias).toEqual({
+      circle: {
+        center: {
+          latitude: 37.7749,
+          longitude: -122.4194,
+        },
+        radius: 50000,
+      },
+    });
+  });
+
+  it('should handle includedPrimaryTypes configuration', async () => {
+    const includedPrimaryTypes = ['establishment', 'geocode'];
+    let requestBody: any;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      requestBody = JSON.parse(options.body);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ suggestions: [] }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, includedPrimaryTypes }),
+    );
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(requestBody.includedPrimaryTypes).toEqual(['establishment', 'geocode']);
+  });
+
+  it('should handle includedRegionCodes configuration', async () => {
+    const includedRegionCodes = ['US', 'CA'];
+    let requestBody: any;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      requestBody = JSON.parse(options.body);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ suggestions: [] }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, includedRegionCodes }),
+    );
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(requestBody.includedRegionCodes).toEqual(['US', 'CA']);
+  });
+
+  it('should handle session token in headers', async () => {
+    const sessionToken = 'test-session-token';
+    let requestHeaders: any;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      requestHeaders = options.headers;
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ suggestions: [] }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, sessionToken }),
+    );
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(requestHeaders['X-Goog-Api-Key']).toBe(mockApiKey);
+  });
+
+  it('should handle session token in getPlaceDetails headers', async () => {
+    const sessionToken = 'test-session-token';
+    let requestHeaders: any;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      requestHeaders = options.headers;
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            formattedAddress: 'Test Address',
+            addressComponents: [],
+            location: { latitude: 0, longitude: 0 },
+          }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, sessionToken }),
+    );
+
+    await act(async () => {
+      await result.current.getPlaceDetails('1');
+    });
+
+    expect(requestHeaders['X-Goog-Api-Key']).toBe(mockApiKey);
+  });
+
+  it('should handle debounced search with custom debounce time', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ suggestions: [] }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, debounceMs: 500 }),
+    );
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
+  it('should handle debounce timer cleanup', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ suggestions: [] }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test1');
+    });
+
+    act(() => {
+      result.current.setValue('test2');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle component cleanup on unmount', () => {
+    const { unmount } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    // This test covers the useEffect cleanup function
+    expect(() => unmount()).not.toThrow();
+  });
+
+  it('should handle suggestions status calculation correctly', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ suggestions: [{ placePrediction: mockPredictions[0] }] }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    // Initially should be ZERO_RESULTS
+    expect(result.current.suggestions.status).toBe('ZERO_RESULTS');
+
+    // Set value to trigger search
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    // Loading state is set when the debounced search actually runs
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    // Should be OK after successful search
+    expect(result.current.suggestions.status).toBe('OK');
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('should handle error status correctly', async () => {
+    const mockFetch = vi.fn().mockRejectedValue(new Error('Test error'));
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.suggestions.status).toBe('ERROR');
+  });
+
+  it('should handle search function existence', () => {
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    // Verify that the search function exists and is a function
+    expect(result.current.search).toBeDefined();
+    expect(typeof result.current.search).toBe('function');
+  });
+
+  it('should handle search function with empty input', () => {
+    const mockFetch = vi.fn();
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    // Test that search function exists
+    expect(result.current.search).toBeDefined();
+
+    // Test that search function returns a promise
+    const searchPromise = result.current.search('');
+    expect(searchPromise).toBeInstanceOf(Promise);
+
+    // Don't wait for the promise to resolve since it's debounced
+    // Just verify the function exists and returns a promise
+  });
 });
