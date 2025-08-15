@@ -86,6 +86,8 @@ interface UsePlacesAutocompleteOptions {
   language?: string;
   /** Types of places to search for */
   types?: string[];
+  /** Primary place types to include (Google Places v1: includedPrimaryTypes) */
+  includedPrimaryTypes?: string[];
   /** Session token for billing optimization */
   sessionToken?: string;
   /** Location bias for more relevant results */
@@ -191,6 +193,16 @@ const { value, suggestions, setValue } = usePlacesAutocomplete({
 const { value, suggestions, setValue } = usePlacesAutocomplete({
   apiKey: 'YOUR_API_KEY',
   types: ['address', 'establishment'],
+});
+```
+
+### Included Primary Types
+
+```tsx
+const { value, suggestions, setValue } = usePlacesAutocomplete({
+  apiKey: 'YOUR_API_KEY',
+  // Restrict to specific primary place types (Places API v1)
+  includedPrimaryTypes: ['locality', 'sublocality'],
 });
 ```
 

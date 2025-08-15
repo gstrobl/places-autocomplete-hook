@@ -219,6 +219,38 @@ describe('usePlacesAutocomplete', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('should include includedPrimaryTypes in the request body when provided', async () => {
+    const includedPrimaryTypes = ['locality', 'sublocality'];
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
+      const body = JSON.parse(options.body);
+      expect(body.includedPrimaryTypes).toEqual(includedPrimaryTypes);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ suggestions: [] }),
+      });
+    });
+    // @ts-ignore
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() =>
+      usePlacesAutocomplete({ apiKey: mockApiKey, includedPrimaryTypes }),
+    );
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('https://places.googleapis.com/v1/places:autocomplete'),
+      expect.any(Object),
+    );
+  });
+
   it('should handle network errors', async () => {
     const mockFetch = vi.fn().mockRejectedValue(new TypeError('Network error'));
     global.fetch = mockFetch;
