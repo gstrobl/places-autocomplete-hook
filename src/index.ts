@@ -44,13 +44,12 @@ export function usePlacesAutocomplete({
         const fieldMask = fields && fields.length > 0 ? fields.join(',') : defaultFields.join(',');
 
         const response = await fetch(
-          `https://places.googleapis.com/v1/places/${placeId}?key=${apiKey}&languageCode=${language}`,
+          `https://places.googleapis.com/v1/places/${placeId}?key=${apiKey}&languageCode=${language}${sessionToken ? `&sessionToken=${sessionToken}` : ''}`,
           {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
               'X-Goog-FieldMask': fieldMask,
-              ...(sessionToken && { 'X-Goog-Api-Key': apiKey }),
             },
           },
         );
@@ -132,6 +131,10 @@ export function usePlacesAutocomplete({
           requestBody.includeQueryPredictions = true;
         }
 
+        if (sessionToken) {
+          requestBody.sessionToken = sessionToken;
+        }
+
         const response = await fetch(
           `https://places.googleapis.com/v1/places:autocomplete?key=${apiKey}`,
           {
@@ -140,7 +143,6 @@ export function usePlacesAutocomplete({
               'Content-Type': 'application/json',
               'X-Goog-FieldMask':
                 'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types',
-              ...(sessionToken && { 'X-Goog-Api-Key': apiKey }),
             },
             body: JSON.stringify(requestBody),
           },

@@ -692,10 +692,10 @@ describe('usePlacesAutocomplete', () => {
 
   it('should handle session token in headers', async () => {
     const sessionToken = 'test-session-token';
-    let requestHeaders: any;
+    let requestBody: any;
 
     const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
-      requestHeaders = options.headers;
+      requestBody = JSON.parse(options.body);
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ suggestions: [] }),
@@ -715,15 +715,16 @@ describe('usePlacesAutocomplete', () => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(requestHeaders['X-Goog-Api-Key']).toBe(mockApiKey);
+    expect(requestBody.sessionToken).toBeDefined();
+    expect(requestBody.sessionToken).toBe(sessionToken);
   });
 
   it('should handle session token in getPlaceDetails headers', async () => {
     const sessionToken = 'test-session-token';
-    let requestHeaders: any;
+    let requestUrl: any;
 
-    const mockFetch = vi.fn().mockImplementation((_url: string, options: any) => {
-      requestHeaders = options.headers;
+    const mockFetch = vi.fn().mockImplementation((_url: string) => {
+      requestUrl = _url;
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -744,7 +745,7 @@ describe('usePlacesAutocomplete', () => {
       await result.current.getPlaceDetails('1');
     });
 
-    expect(requestHeaders['X-Goog-Api-Key']).toBe(mockApiKey);
+    expect(requestUrl).toContain(`sessionToken=${sessionToken}`);
   });
 
   it('should handle debounced search with custom debounce time', async () => {
