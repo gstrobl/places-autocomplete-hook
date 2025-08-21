@@ -690,7 +690,7 @@ describe('usePlacesAutocomplete', () => {
     expect(requestBody.includedRegionCodes).toEqual(['US', 'CA']);
   });
 
-  it('should handle session token in headers', async () => {
+  it('should include session token in request body', async () => {
     const sessionToken = 'test-session-token';
     let requestBody: any;
 
@@ -719,7 +719,7 @@ describe('usePlacesAutocomplete', () => {
     expect(requestBody.sessionToken).toBe(sessionToken);
   });
 
-  it('should handle session token in getPlaceDetails headers', async () => {
+  it('should include session token in getPlaceDetails query params', async () => {
     const sessionToken = 'test-session-token';
     let requestUrl: any;
 
