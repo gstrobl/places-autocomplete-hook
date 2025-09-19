@@ -216,6 +216,7 @@ export function usePlacesAutocomplete({
 
 export type {
   PlacePrediction,
+  AddressComponent,
   UsePlacesAutocompleteOptions,
   UsePlacesAutocompleteResult,
   PlaceDetails,
