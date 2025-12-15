@@ -23,9 +23,177 @@ export interface PlacePrediction {
 }
 
 export interface AddressComponent {
-  longText: string;
-  shortText: string;
-  types: string[];
+  longText?: string;
+  shortText?: string;
+  types?: string[];
+  languageCode?: string;
+}
+
+interface GoogleMapsLinks {
+  directionsUri?: string;
+  placeUri?: string;
+  writeAReviewUri?: string;
+  reviewsUri?: string;
+  photosUri?: string;
+}
+
+interface AuthorAttributions {
+  displayName?: string;
+  uri?: string;
+  photoUri?: string;
+}
+
+interface Photos {
+  name?: string;
+  widthPx?: number;
+  heightPx?: number;
+  authorAttributions?: AuthorAttributions[];
+  flagContentUri?: string;
+  googleMapsUri?: string;
+}
+
+interface DisplayName {
+  text?: string;
+  languageCode?: string;
+}
+
+interface ViewPort {
+  low?: {
+    latitude?: number;
+    longitude?: number;
+  };
+  high?: {
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
+interface PlusCode {
+  globalCode?: string;
+  compoundCode?: string;
+}
+
+interface TimeZone {
+  id?: string;
+}
+
+interface PaymentOptions {
+  acceptsCreditCards?: boolean;
+  acceptsDebitCards?: boolean;
+  acceptsCashOnly?: boolean;
+  acceptsNfc?: boolean;
+}
+
+interface PostalAddress {
+  regionCode?: string;
+  languageCode?: string;
+  postalCode?: string;
+  locality?: string;
+  addressLines?: string[];
+  administrativeArea?: string;
+}
+
+interface AccessibilityOptions {
+  wheelchairAccessibleParking?: boolean;
+  wheelchairAccessibleEntrance?: boolean;
+  wheelchairAccessibleRestroom?: boolean;
+  wheelchairAccessibleSeating?: boolean;
+}
+
+interface PrimaryTypeDisplayName {
+  text?: string;
+  languageCode?: string;
+}
+
+interface PriceRange {
+  startPrice?: {
+    currencyCode?: string;
+    units?: string;
+  };
+  endPrice?: {
+    currencyCode?: string;
+    units?: string;
+  };
+}
+
+interface EditorialSummary {
+  text?: string;
+  languageCode?: string;
+}
+
+interface Review {
+  name?: string;
+  relativePublishTimeDescription?: string;
+  rating?: number;
+  text?: {
+    text?: string;
+    languageCode?: string;
+  };
+  originalText?: {
+    text?: string;
+    languageCode?: string;
+  };
+  authorAttributions?: AuthorAttributions;
+  publishTime?: string;
+  flagContentUri?: string;
+  googleMapsUri?: string;
+}
+
+interface Period {
+  open?: {
+    day?: number;
+    hour?: number;
+    minute?: number;
+    date?: {
+      year?: number;
+      month?: number;
+      day?: number;
+    };
+  };
+  close?: {
+    day?: number;
+    hour?: number;
+    minute?: number;
+    date?: {
+      year?: number;
+      month?: number;
+      day?: number;
+    };
+  };
+}
+
+interface OpeningHours {
+  openNow?: boolean;
+  weekdayDescriptions?: string[];
+  periods?: Period[];
+  nextCloseTime?: string;
+}
+
+interface ParkingOptions {
+  freeStreetParking?: boolean;
+  freeParkingLot?: boolean;
+}
+
+interface Landmark {
+  name?: string;
+  placeId?: string;
+  displayName?: DisplayName;
+  types?: string[];
+  straightLineDistanceMeters?: number;
+  travelDistanceMeters?: number;
+  spatialRelationship?: string;
+}
+
+interface Area {
+  name?: string;
+  placeId?: string;
+  displayName?: DisplayName;
+  containment: string;
+}
+
+interface AddressDescriptor {
+  landmarks?: Landmark[];
+  areas?: Area[];
 }
 
 export interface PlaceDetails {
@@ -43,6 +211,59 @@ export interface PlaceDetails {
   state?: string;
   country?: string;
   postalCode?: string;
+  googleMapsUri?: string;
+  websiteUri?: string;
+  utcOffsetMinutes?: number;
+  userRatingCount?: number;
+  primaryType?: string;
+  shortFormattedAddress?: string;
+  delivery?: boolean;
+  dineIn?: boolean;
+  servesDinner?: boolean;
+  servesLunch?: boolean;
+  takeout?: boolean;
+  priceLevel?: string;
+  types?: string[];
+  photos?: Photos[];
+  rating?: number;
+  displayName?: DisplayName;
+  iconBackgroundColor?: string;
+  iconMaskBaseUri?: string;
+  businessStatus?: string;
+  adrFormatAddress?: string;
+  goodForChildren?: boolean;
+  goodForGroups?: boolean;
+  outdoorSeating?: boolean;
+  menuForChildren?: boolean;
+  servesDessert?: boolean;
+  viewport?: ViewPort;
+  plusCode?: PlusCode;
+  internationalPhoneNumber?: string;
+  nationalPhoneNumber?: string;
+  googleMapsLinks?: GoogleMapsLinks;
+  pureServiceAreaBusiness?: boolean;
+  timeZone?: TimeZone;
+  paymentOptions?: PaymentOptions;
+  postalAddress?: PostalAddress;
+  accessibilityOptions?: AccessibilityOptions;
+  primaryTypeDisplayName?: PrimaryTypeDisplayName;
+  editorialSummary?: EditorialSummary;
+  reviews?: Review[];
+  priceRange?: PriceRange;
+  currentOpeningHours?: OpeningHours;
+  regularOpeningHours?: OpeningHours;
+  parkingOptions?: ParkingOptions;
+  reservable?: boolean;
+  servesBeer?: boolean;
+  servesWine?: boolean;
+  allowsDogs?: boolean;
+  liveMusic?: boolean;
+  servesCocktails?: boolean;
+  restroom?: boolean;
+  name?: string;
+  addressDescriptor?: AddressDescriptor;
+  goodForWatchingSports?: boolean;
+  curbsidePickup?: boolean;
 }
 
 export interface UsePlacesAutocompleteOptions {

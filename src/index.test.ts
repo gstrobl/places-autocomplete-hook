@@ -169,6 +169,8 @@ describe('usePlacesAutocomplete', () => {
         Promise.resolve({
           formattedAddress: '123 Test St, Test City, Test Country',
           displayName: { text: 'Test Place' },
+          reservable: true,
+          rating: 4.5,
         }),
     });
     global.fetch = mockFetch;
@@ -179,6 +181,8 @@ describe('usePlacesAutocomplete', () => {
       const details = await result.current.getPlaceDetails('1', [
         'formattedAddress',
         'displayName',
+        'reservable',
+        'rating',
       ]);
       expect(details.formattedAddress).toBe('123 Test St, Test City, Test Country');
     });
@@ -187,7 +191,7 @@ describe('usePlacesAutocomplete', () => {
       expect.stringContaining('https://places.googleapis.com/v1/places/1'),
       expect.objectContaining({
         headers: expect.objectContaining({
-          'X-Goog-FieldMask': 'formattedAddress,displayName',
+          'X-Goog-FieldMask': 'formattedAddress,displayName,reservable,rating',
         }),
       }),
     );
@@ -216,6 +220,34 @@ describe('usePlacesAutocomplete', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           'X-Goog-FieldMask': 'formattedAddress,addressComponents,location',
+        }),
+      }),
+    );
+  });
+
+  it('should return every available field when asterisk wildcard is provided', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: '123 Test St, Test City, Test Country',
+          addressComponents: [],
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      await result.current.getPlaceDetails('1', ['*']);
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('https://places.googleapis.com/v1/places/1'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Goog-FieldMask': '*',
         }),
       }),
     );

@@ -33,7 +33,7 @@ export function usePlacesAutocomplete({
     components: AddressComponent[],
     type: string,
   ): string | undefined => {
-    const component = components.find(comp => comp.types.includes(type));
+    const component = components.find(comp => comp.types?.includes(type));
     return component?.longText;
   };
 
@@ -63,7 +63,7 @@ export function usePlacesAutocomplete({
         const addressComponents = data.addressComponents || [];
 
         return {
-          placeId: placeId,
+          placeId: data.id || placeId,
           formattedAddress: data.formattedAddress,
           addressComponents,
           location: data.location,
@@ -73,6 +73,59 @@ export function usePlacesAutocomplete({
           state: extractAddressComponent(addressComponents, 'administrative_area_level_1'),
           country: extractAddressComponent(addressComponents, 'country'),
           postalCode: extractAddressComponent(addressComponents, 'postal_code'),
+          photos: data.photos,
+          priceLevel: data.priceLevel,
+          rating: data.rating,
+          types: data.types,
+          displayName: data.displayName,
+          googleMapsUri: data.googleMapsUri,
+          websiteUri: data.websiteUri,
+          utcOffsetMinutes: data.utcOffsetMinutes,
+          userRatingCount: data.userRatingCount,
+          primaryType: data.primaryType,
+          shortFormattedAddress: data.shortFormattedAddress,
+          delivery: data.delivery,
+          dineIn: data.dineIn,
+          servesDinner: data.servesDinner,
+          servesLunch: data.servesLunch,
+          takeout: data.takeout,
+          iconBackgroundColor: data.iconBackground,
+          iconMaskBaseUri: data.iconMaskBaseUri,
+          businessStatus: data.businessStatus,
+          adrFormatAddress: data.adrFormatAddress,
+          goodForChildren: data.goodForChildren,
+          goodForGroups: data.goodForGroups,
+          outdoorSeating: data.outdoorSeating,
+          menuForChildren: data.menuForChildren,
+          servesDessert: data.servesDessert,
+          viewport: data.viewport,
+          plusCode: data.plusCode,
+          internationalPhoneNumber: data.internationalPhoneNumber,
+          nationalPhoneNumber: data.nationalPhoneNumber,
+          googleMapsLinks: data.googleMapsLinks,
+          pureServiceAreaBusiness: data.pureServiceAreaBusiness,
+          timeZone: data.timeZone,
+          paymentOptions: data.paymentOptions,
+          postalAddress: data.postalAddress,
+          accessibilityOptions: data.accessibilityOptions,
+          primaryTypeDisplayName: data.primaryTypeDisplayName,
+          editorialSummary: data.editorialSummary,
+          reviews: data.reviews,
+          priceRange: data.priceRange,
+          currentOpeningHours: data.currentOpeningHours,
+          regularOpeningHours: data.regularOpeningHours,
+          parkingOptions: data.parkingOptions,
+          reservable: data.reservable,
+          servesBeer: data.servesBeer,
+          servesWine: data.servesWine,
+          allowsDogs: data.allowsDogs,
+          liveMusic: data.liveMusic,
+          servesCocktails: data.servesCocktails,
+          restroom: data.restroom,
+          name: data.name,
+          addressDescriptor: data.addressDescriptor,
+          goodForWatchingSports: data.goodForWatchingSports,
+          curbsidePickup: data.curbsidePickup,
         };
       } catch (err) {
         throw err instanceof Error
