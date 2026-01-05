@@ -8,6 +8,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Debug
         run: |
@@ -22,6 +25,7 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
+          always-auth: true
       
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -40,14 +44,9 @@ jobs:
       
       - name: Publish to NPM
         run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "Error: NPM_TOKEN is not set"
-            exit 1
-          fi
           # Fix package.json repository URL format
           npm pkg fix
-          # Publish using npm directly
-          npm publish --access public
+          # Publish using npm with provenance (Trusted Publishing)
+          npm publish --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
