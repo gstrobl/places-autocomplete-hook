@@ -33,7 +33,10 @@ export function usePlacesAutocomplete({
     components: AddressComponent[],
     type: string,
   ): string | undefined => {
-    const component = components.find(comp => comp.types?.includes(type));
+    // Safely find component by type, handling cases where types property is missing
+    const component = components.find(
+      comp => comp.types && Array.isArray(comp.types) && comp.types.includes(type),
+    );
     return component?.longText;
   };
 
@@ -188,14 +191,21 @@ export function usePlacesAutocomplete({
           requestBody.sessionToken = sessionToken;
         }
 
+        // Build FieldMask - include query prediction fields when includeQueryPredictions is true
+        let fieldMask =
+          'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types';
+        if (requestBody.includeQueryPredictions) {
+          fieldMask +=
+            ',suggestions.queryPrediction.text,suggestions.queryPrediction.structuredFormat';
+        }
+
         const response = await fetch(
           `https://places.googleapis.com/v1/places:autocomplete?key=${apiKey}`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-FieldMask':
-                'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types',
+              'X-Goog-FieldMask': fieldMask,
             },
             body: JSON.stringify(requestBody),
           },
@@ -207,7 +217,12 @@ export function usePlacesAutocomplete({
         }
 
         const data = await response.json();
-        setPredictions(data.suggestions.map((suggestion: any) => suggestion.placePrediction) || []);
+        // Filter to only include place predictions (exclude query predictions)
+        // This will throw if data.suggestions is undefined (maintains original error behavior)
+        const placePredictions = data.suggestions
+          .map((suggestion: any) => suggestion.placePrediction)
+          .filter((prediction: any) => prediction !== undefined && prediction !== null);
+        setPredictions(placePredictions);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));
         setPredictions([]);
