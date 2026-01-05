@@ -371,6 +371,15 @@ const details = await getPlaceDetails(placeId, [
 ]);
 ```
 
+### Retrieve all fields from Place Details
+
+#### This should not be used in production since it will cost a lot.
+You can use `*` wildcard to retrieve all available fields when getting place details:
+
+```tsx
+const details = await getPlaceDetails(placeId, ['*']);
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
