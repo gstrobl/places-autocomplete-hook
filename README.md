@@ -374,15 +374,36 @@ const details = await getPlaceDetails(placeId, [
 ### Retrieve all fields from Place Details
 
 #### This should not be used in production since it will cost a lot.
+
 You can use `*` wildcard to retrieve all available fields when getting place details:
 
 ```tsx
 const details = await getPlaceDetails(placeId, ['*']);
 ```
 
+## Development
+
+This project uses [Yarn](https://yarnpkg.com/) as the package manager. Make sure you have Yarn installed before setting up the project locally.
+
+```bash
+# Install dependencies
+yarn install
+
+# Run tests
+yarn test
+
+# Build the project
+yarn build
+
+# Run in development mode
+yarn dev
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+**Note:** This project requires Yarn for development. Please use `yarn` instead of `npm` when working on this project locally.
 
 ## License
 

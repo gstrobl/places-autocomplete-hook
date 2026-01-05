@@ -545,6 +545,34 @@ describe('usePlacesAutocomplete', () => {
     });
   });
 
+  it('should handle address components without types property', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: 'Test Location',
+          addressComponents: [
+            { longText: '123', shortText: '123' }, // Missing types property
+            { longText: 'Test Street', shortText: 'Test St', types: ['route'] },
+            { longText: 'Test City' }, // Missing types property
+          ],
+          location: { latitude: 0, longitude: 0 },
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1');
+      // Should not throw error and should handle missing types gracefully
+      expect(details.streetNumber).toBeUndefined(); // First component has no types
+      expect(details.streetName).toBe('Test Street'); // Second component has types
+      expect(details.city).toBeUndefined(); // Third component has no types
+      expect(details.addressComponents).toHaveLength(3);
+    });
+  });
+
   it('should handle HTTP error responses in search function', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
