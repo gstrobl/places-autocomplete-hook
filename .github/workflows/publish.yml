@@ -42,11 +42,18 @@ jobs:
       - name: Build
         run: yarn build
       
+      - name: Configure npm authentication
+        run: |
+          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+          fi
+      
       - name: Publish to NPM
         run: |
           # Fix package.json repository URL format
           npm pkg fix
           # Publish using npm with provenance (Trusted Publishing)
+          # Note: Requires NPM_TOKEN with "bypass 2FA" enabled if 2FA is active
           npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
