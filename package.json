@@ -13,12 +13,17 @@
       "require": "./dist/index.js"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/gstrobl/places-autocomplete-hook"
+  },
+  "homepage": "https://autocomplete.gstrobl.at",
+  "bugs": {
+    "url": "https://github.com/gstrobl/places-autocomplete-hook/issues"
   },
   "scripts": {
     "build": "tsup",
@@ -48,7 +53,7 @@
     "google-maps",
     "location-search"
   ],
-  "author": "Seatsmatch GmbH",
+  "author": "Gerald Strobl (https://gstrobl.at)",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=16.8.0"
