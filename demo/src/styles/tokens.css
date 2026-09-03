@@ -1,0 +1,52 @@
+/* Design tokens ported from gstrobl.at */
+:root {
+  --color-thunder-400: #7e8d74;
+  --color-thunder-500: #637359;
+  --color-thunder-700: #404a3b;
+  --color-thunder-800: #353d32;
+  --color-thunder-900: #2a3328;
+  --color-thunder-950: #181d16;
+  --color-cream: #f5ead0;
+
+  --color-accent: #fc4308;
+  --color-accent-soft: #ff6635;
+
+  --color-bg: #181d16;
+  --color-bg-elev: #1f2620;
+  --color-bg-tint: #232b22;
+  --color-ink: #f5ead0;
+  --color-ink-soft: #c7cfc0;
+  --color-ink-mute: #7e8d74;
+
+  --color-cta-bg: #f5ead0;
+  --color-cta-bg-hover: #ebdfc0;
+  --color-cta-fg: #181d16;
+
+  --line: #f5ead024;
+  --line-soft: #f5ead014;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --color-bg: #f5ead0;
+  --color-bg-elev: #ebdfc0;
+  --color-bg-tint: #dfd3a6;
+  --color-ink: #2a3328;
+  --color-ink-soft: #404a3b;
+  --color-ink-mute: #637359;
+
+  --color-cta-bg: #2a3328;
+  --color-cta-bg-hover: #181d16;
+  --color-cta-fg: #f5ead0;
+
+  --line: #2a332829;
+  --line-soft: #2a332814;
+
+  color-scheme: light;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-cream);
+}

@@ -1,0 +1,47 @@
+# places-autocomplete-hook
+
+> A lightweight, dependency-free React hook (TypeScript) that wraps the Google Places API (New) Autocomplete and Place Details endpoints. It handles debouncing, request cancellation, session tokens for billing optimization, and place details retrieval, while leaving the UI entirely to you.
+
+Install with `npm install places-autocomplete-hook`. Requires React >= 16.8 and a Google Cloud API key with the Places API (New) enabled. MIT licensed, maintained by Gerald Strobl.
+
+Minimal usage:
+
+```tsx
+import { usePlacesAutocomplete } from 'places-autocomplete-hook';
+
+const { value, setValue, suggestions, loading, error, getPlaceDetails, handlePlaceSelect } =
+  usePlacesAutocomplete({ apiKey: 'YOUR_GOOGLE_PLACES_API_KEY' });
+```
+
+Key facts:
+
+- Package name: `places-autocomplete-hook` (npm)
+- Main export: `usePlacesAutocomplete(options)`
+- Options: `apiKey`, `debounceMs` (default 300), `language` (default 'en'), `includedPrimaryTypes`, `includedRegionCodes`, `sessionToken`, `location` ({ lat, lng, radius }), `setSelectedPlace`
+- Returns: `value`, `setValue`, `suggestions` ({ status, data }), `clearSuggestions`, `loading`, `error`, `getPlaceDetails(placeId, fields?)`, `handlePlaceSelect(placeId)`
+- Ships ESM + CJS builds with bundled TypeScript types; `sideEffects: false` for tree shaking
+- Stale in-flight requests are cancelled automatically, so older responses never overwrite newer ones
+
+## Docs
+
+- [README](https://github.com/gstrobl/places-autocomplete-hook/blob/main/README.md): Full documentation — installation, quick start, API reference, and advanced usage.
+- [API reference](https://github.com/gstrobl/places-autocomplete-hook#api-reference): Hook options, return value, and TypeScript types.
+- [Location biasing](https://github.com/gstrobl/places-autocomplete-hook#location-biasing): Bias suggestions toward a lat/lng and radius.
+- [Included primary types](https://github.com/gstrobl/places-autocomplete-hook#included-primary-types): Restrict results to place types such as `street_address` or `locality`.
+- [Region code restrictions](https://github.com/gstrobl/places-autocomplete-hook#region-code-restrictions): Limit results to ISO 3166-1 alpha-2 countries.
+- [Session tokens](https://github.com/gstrobl/places-autocomplete-hook#session-token-for-billing-optimization): Group autocomplete requests with a details request to reduce Google Places billing.
+- [Place details fields](https://github.com/gstrobl/places-autocomplete-hook#custom-fields-for-place-details): Request only the fields you need, or retrieve all of them.
+
+## Links
+
+- [Live demo](https://autocomplete.gstrobl.at): Interactive example with field selection and place details output.
+- [npm package](https://www.npmjs.com/package/places-autocomplete-hook): Releases, versions, and install instructions.
+- [GitHub repository](https://github.com/gstrobl/places-autocomplete-hook): Source, tests, and release history.
+- [Issue tracker](https://github.com/gstrobl/places-autocomplete-hook/issues): Bug reports and feature requests.
+- [Google Places API (New) docs](https://developers.google.com/maps/documentation/places/web-service/place-autocomplete): Upstream API this hook wraps.
+
+## Optional
+
+- [Source: src/index.ts](https://github.com/gstrobl/places-autocomplete-hook/blob/main/src/index.ts): Hook implementation.
+- [Tests](https://github.com/gstrobl/places-autocomplete-hook/blob/main/src/index.test.ts): Vitest suite covering debouncing, cancellation, and error handling.
+- [License (MIT)](https://github.com/gstrobl/places-autocomplete-hook/blob/main/LICENSE)
