@@ -86,9 +86,12 @@
     "vitest": "^3.2.2"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
+    "src/**/*.{ts,tsx}": [
       "yarn lint:fix",
-      "yarn format"
+      "prettier --write"
+    ],
+    "demo/**/*.{ts,tsx}": [
+      "prettier --write"
     ],
     "*.{json,md}": [
       "prettier --write"
