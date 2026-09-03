@@ -7,6 +7,21 @@ import {
   AddressComponent,
 } from './types';
 
+interface AutocompleteRequestBody {
+  input: string;
+  languageCode: string;
+  includedPrimaryTypes?: string[];
+  includedRegionCodes?: string[];
+  includeQueryPredictions?: boolean;
+  locationBias?: {
+    circle: {
+      center: { latitude: number; longitude: number };
+      radius?: number;
+    };
+  };
+  sessionToken?: string;
+}
+
 export function usePlacesAutocomplete({
   apiKey,
   debounceMs = 300,
@@ -21,12 +36,13 @@ export function usePlacesAutocomplete({
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const clear = useCallback(() => {
+    abortControllerRef.current?.abort();
     setPredictions([]);
     setError(null);
-    setValue('');
   }, []);
 
   const extractAddressComponent = (
@@ -86,7 +102,7 @@ export function usePlacesAutocomplete({
           goodForWatchingSports: data.goodForWatchingSports,
           googleMapsLinks: data.googleMapsLinks,
           googleMapsUri: data.googleMapsUri,
-          iconBackgroundColor: data.iconBackground,
+          iconBackgroundColor: data.iconBackgroundColor,
           iconMaskBaseUri: data.iconMaskBaseUri,
           internationalPhoneNumber: data.internationalPhoneNumber,
           liveMusic: data.liveMusic,
@@ -153,11 +169,15 @@ export function usePlacesAutocomplete({
         return;
       }
 
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
         setLoading(true);
         setError(null);
 
-        const requestBody: any = {
+        const requestBody: AutocompleteRequestBody = {
           input: input,
           languageCode: language,
         };
@@ -208,6 +228,7 @@ export function usePlacesAutocomplete({
               'X-Goog-FieldMask': fieldMask,
             },
             body: JSON.stringify(requestBody),
+            signal: controller.signal,
           },
         );
 
@@ -218,16 +239,23 @@ export function usePlacesAutocomplete({
 
         const data = await response.json();
         // Filter to only include place predictions (exclude query predictions)
-        // This will throw if data.suggestions is undefined (maintains original error behavior)
-        const placePredictions = data.suggestions
-          .map((suggestion: any) => suggestion.placePrediction)
-          .filter((prediction: any) => prediction !== undefined && prediction !== null);
+        const suggestions: Array<{ placePrediction?: PlacePrediction | null }> =
+          data.suggestions ?? [];
+        const placePredictions = suggestions
+          .map(suggestion => suggestion.placePrediction)
+          .filter((prediction): prediction is PlacePrediction => prediction != null);
         setPredictions(placePredictions);
       } catch (err) {
+        // A newer request superseded this one; its result must not touch state
+        if (controller.signal.aborted) {
+          return;
+        }
         setError(err instanceof Error ? err : new Error('An error occurred'));
         setPredictions([]);
       } finally {
-        setLoading(false);
+        if (abortControllerRef.current === controller) {
+          setLoading(false);
+        }
       }
     },
     [apiKey, language, sessionToken, includedPrimaryTypes, includedRegionCodes, location, clear],
@@ -254,8 +282,19 @@ export function usePlacesAutocomplete({
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
+      abortControllerRef.current?.abort();
     };
   }, []);
+
+  const updateValue = useCallback(
+    (newValue: string, shouldFetchData = true) => {
+      setValue(newValue);
+      if (shouldFetchData) {
+        debouncedSearch(newValue);
+      }
+    },
+    [debouncedSearch],
+  );
 
   return {
     value,
@@ -269,12 +308,7 @@ export function usePlacesAutocomplete({
             : 'ZERO_RESULTS',
       data: predictions,
     },
-    setValue: (newValue: string, shouldFetchData = true) => {
-      setValue(newValue);
-      if (shouldFetchData) {
-        debouncedSearch(newValue);
-      }
-    },
+    setValue: updateValue,
     clearSuggestions: clear,
     search: debouncedSearch,
     loading,

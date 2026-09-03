@@ -16,6 +16,7 @@ A lightweight React hook for Google Places Autocomplete API that provides a simp
 - 🎯 Support for location biasing
 - 🌍 Multi-language support
 - ⚡ Debounced search to prevent excessive API calls
+- 🚫 Automatic request cancellation — stale responses never overwrite newer results
 - 🔒 Session token support for billing optimization
 - 📍 Detailed place information retrieval with formattedAddress
 - 🎨 Fully customizable UI (bring your own components)
@@ -27,6 +28,8 @@ A lightweight React hook for Google Places Autocomplete API that provides a simp
 npm install places-autocomplete-hook
 # or
 yarn add places-autocomplete-hook
+# or
+pnpm add places-autocomplete-hook
 ```
 
 ## Quick Start
@@ -78,6 +81,21 @@ function AddressInput() {
 }
 ```
 
+## Migrating from v1 to v2
+
+**Breaking change:** `clearSuggestions()` no longer resets the input value. It now only clears the suggestion list and aborts any in-flight request, which is what its name implies. If you relied on it to empty the input as well, clear the value yourself:
+
+```tsx
+// v1
+clearSuggestions(); // also set value to ''
+
+// v2
+clearSuggestions();
+setValue('', false); // pass false to skip a new search
+```
+
+Everything else is backwards compatible. v2 also fixes `iconBackgroundColor` in place details (previously read from the wrong response key) and corrects several field names in the documented `getPlaceDetails` field list.
+
 ## API Reference
 
 ### Hook Options
@@ -120,7 +138,7 @@ interface UsePlacesAutocompleteResult {
   };
   /** Function to update the input value */
   setValue: (value: string, shouldFetchData?: boolean) => void;
-  /** Function to clear suggestions */
+  /** Function to clear suggestions (keeps the current input value) */
   clearSuggestions: () => void;
   /** Function to manually trigger a search */
   search: (input: string) => Promise<void>;
@@ -169,12 +187,31 @@ interface PlaceDetails {
     latitude: number;
     longitude: number;
   };
+  // Convenience fields extracted from addressComponents
   streetNumber?: string;
   streetName?: string;
   city?: string;
   state?: string;
   country?: string;
   postalCode?: string;
+  // Plus every optional Places API v1 field, e.g.:
+  displayName?: { text?: string; languageCode?: string };
+  rating?: number;
+  userRatingCount?: number;
+  websiteUri?: string;
+  internationalPhoneNumber?: string;
+  regularOpeningHours?: OpeningHours;
+  currentOpeningHours?: OpeningHours;
+  photos?: Photos[];
+  reviews?: Review[];
+  priceLevel?: string;
+  businessStatus?: string;
+  types?: string[];
+  primaryType?: string;
+  accessibilityOptions?: AccessibilityOptions;
+  parkingOptions?: ParkingOptions;
+  paymentOptions?: PaymentOptions;
+  // ... see the exported PlaceDetails type for the full list
 }
 ```
 
@@ -207,7 +244,7 @@ const { value, suggestions, setValue } = usePlacesAutocomplete({
 
 The `includedPrimaryTypes` parameter (Places API v1) accepts an array of primary place types:
 
-- **`'locality'`** - Cites, Countries
+- **`'locality'`** - Cities and towns
 - **`'administrative_area_level_3'`** - Third-level administrative areas
 - **`'administrative_area_level_4'`** - Fourth-level administrative areas
 - **`'administrative_area_level_5'`** - Fifth-level administrative areas
@@ -329,45 +366,35 @@ const details = await getPlaceDetails(placeId, [
   'photos',
   'rating',
   'userRatingCount',
+  'reviews',
   'priceLevel',
+  'priceRange',
   'types',
+  'primaryType',
   'websiteUri',
-  'phoneNumbers',
+  'internationalPhoneNumber',
+  'nationalPhoneNumber',
   'businessStatus',
-  'openingHours',
+  'currentOpeningHours',
+  'regularOpeningHours',
   'delivery',
   'dineIn',
   'takeout',
   'reservable',
   'servesBeer',
+  'servesWine',
+  'servesCocktails',
+  'servesDessert',
   'outdoorSeating',
   'liveMusic',
   'menuForChildren',
-  'servesCocktails',
-  'servesDessert',
-  'servesCoffee',
   'goodForChildren',
+  'goodForGroups',
   'allowsDogs',
   'restroom',
-  'parking',
+  'parkingOptions',
   'paymentOptions',
   'accessibilityOptions',
-  'atmosphere',
-  'crowd',
-  'childrenFriendly',
-  'touristFriendly',
-  'upscale',
-  'casual',
-  'trendy',
-  'romantic',
-  'intimate',
-  'classy',
-  'hipster',
-  'divey',
-  'touristy',
-  'local',
-  'familyFriendly',
-  'groups',
 ]);
 ```
 
@@ -407,4 +434,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT [Seatsmatch GmbH](https://seatsmatch.com)
+MIT [Gerald Strobl](https://gstrobl.at)

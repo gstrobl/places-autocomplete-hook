@@ -92,7 +92,7 @@ describe('usePlacesAutocomplete', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('should clear suggestions', async () => {
+  it('should clear suggestions while keeping the input value', async () => {
     const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
 
     act(() => {
@@ -107,7 +107,7 @@ describe('usePlacesAutocomplete', () => {
       result.current.clearSuggestions();
     });
 
-    expect(result.current.value).toBe('');
+    expect(result.current.value).toBe('test');
     expect(result.current.suggestions.data).toEqual([]);
     expect(result.current.suggestions.status).toBe('ZERO_RESULTS');
   });
@@ -366,7 +366,7 @@ describe('usePlacesAutocomplete', () => {
     expect(result.current.suggestions.status).toBe('ERROR');
   });
 
-  it('should handle invalid API responses', async () => {
+  it('should treat responses without suggestions as zero results', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ invalid: 'response' }),
@@ -384,9 +384,8 @@ describe('usePlacesAutocomplete', () => {
     });
 
     expect(result.current.suggestions.data).toEqual([]);
-    expect(result.current.error).toBeInstanceOf(TypeError);
-    expect(result.current.error?.message).toContain('Cannot read properties of undefined');
-    expect(result.current.suggestions.status).toBe('ERROR');
+    expect(result.current.error).toBeNull();
+    expect(result.current.suggestions.status).toBe('ZERO_RESULTS');
   });
 
   it('should handle component unmounting during search', async () => {
@@ -919,6 +918,153 @@ describe('usePlacesAutocomplete', () => {
     // Verify that the search function exists and is a function
     expect(result.current.search).toBeDefined();
     expect(typeof result.current.search).toBe('function');
+  });
+
+  it('should abort the in-flight request when a new search starts', async () => {
+    const receivedSignals: AbortSignal[] = [];
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: RequestInit) => {
+      receivedSignals.push(options.signal as AbortSignal);
+      return new Promise(() => {});
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('vien');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    act(() => {
+      result.current.setValue('vienna');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(receivedSignals[0].aborted).toBe(true);
+    expect(receivedSignals[1].aborted).toBe(false);
+  });
+
+  it('should ignore aborted requests instead of surfacing an error', async () => {
+    const mockFetch = vi
+      .fn()
+      .mockImplementationOnce(
+        (_url: string, options: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            (options.signal as AbortSignal).addEventListener('abort', () => {
+              reject(new DOMException('The operation was aborted.', 'AbortError'));
+            });
+          }),
+      )
+      .mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ suggestions: [{ placePrediction: mockPredictions[0] }] }),
+        }),
+      );
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('vien');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    act(() => {
+      result.current.setValue('vienna');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.suggestions.status).toBe('OK');
+    expect(result.current.suggestions.data).toEqual(mockPredictions);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('should abort the in-flight request on unmount', async () => {
+    let signal: AbortSignal | undefined;
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: RequestInit) => {
+      signal = options.signal as AbortSignal;
+      return new Promise(() => {});
+    });
+    global.fetch = mockFetch;
+
+    const { result, unmount } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(signal?.aborted).toBe(false);
+
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('should abort the in-flight request when suggestions are cleared', async () => {
+    let signal: AbortSignal | undefined;
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: RequestInit) => {
+      signal = options.signal as AbortSignal;
+      return new Promise(() => {});
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    act(() => {
+      result.current.setValue('test');
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(signal?.aborted).toBe(false);
+
+    act(() => {
+      result.current.clearSuggestions();
+    });
+
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('should map iconBackgroundColor from the response', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          formattedAddress: 'Test Location',
+          addressComponents: [],
+          location: { latitude: 0, longitude: 0 },
+          iconBackgroundColor: '#909CE1',
+        }),
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => usePlacesAutocomplete({ apiKey: mockApiKey }));
+
+    await act(async () => {
+      const details = await result.current.getPlaceDetails('1');
+      expect(details.iconBackgroundColor).toBe('#909CE1');
+    });
   });
 
   it('should handle search function with empty input', () => {
